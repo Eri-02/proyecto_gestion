@@ -43,6 +43,26 @@ export const routes: Routes = [
         canActivate: [roleGuard('ADMIN', 'FINANZAS')]
       },
       {
+        path: 'auditoria-financiera',
+        loadComponent: () => import('./modules/auditoria-financiera/auditoria-financiera.component').then(m => m.AuditoriaFinancieraComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN')]
+      },
+      {
+        path: 'presupuestos',
+        loadComponent: () => import('./modules/presupuestos/presupuesto-list/presupuesto-list.component').then(m => m.PresupuestoListComponent),
+        canActivate: [roleGuard('ADMIN', 'FINANZAS')]
+      },
+      {
+        path: 'presupuestos/nuevo',
+        loadComponent: () => import('./modules/presupuestos/presupuesto-form/presupuesto-form.component').then(m => m.PresupuestoFormComponent),
+        canActivate: [roleGuard('ADMIN', 'FINANZAS')]
+      },
+      {
+        path: 'presupuestos/:id/editar',
+        loadComponent: () => import('./modules/presupuestos/presupuesto-form/presupuesto-form.component').then(m => m.PresupuestoFormComponent),
+        canActivate: [roleGuard('ADMIN', 'FINANZAS')]
+      },
+      {
         path: 'prioridades',
         loadComponent: () => import('./modules/prioridades/prioridad-list/prioridad-list.component').then(m => m.PrioridadListComponent),
         canActivate: [roleGuard('ADMIN', 'ANALISTA')]

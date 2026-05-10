@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CostoExtraRequest, CostoExtraResponse } from '../models/costo-extra.model';
+
+export interface CostoExtraFilters {
+  inicio?: string;
+  fin?: string;
+  facturable?: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CostoExtraService {
@@ -9,16 +15,16 @@ export class CostoExtraService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<CostoExtraResponse[]> {
-    return this.http.get<CostoExtraResponse[]>(this.API);
+  getAll(filters: CostoExtraFilters = {}): Observable<CostoExtraResponse[]> {
+    return this.http.get<CostoExtraResponse[]>(this.API, { params: this.buildParams(filters) });
   }
 
   getById(id: number): Observable<CostoExtraResponse> {
     return this.http.get<CostoExtraResponse>(`${this.API}/${id}`);
   }
 
-  getByIncidente(incidenteId: number): Observable<CostoExtraResponse[]> {
-    return this.http.get<CostoExtraResponse[]>(`${this.API}/incidente/${incidenteId}`);
+  getByIncidente(incidenteId: number, filters: CostoExtraFilters = {}): Observable<CostoExtraResponse[]> {
+    return this.http.get<CostoExtraResponse[]>(`${this.API}/incidente/${incidenteId}`, { params: this.buildParams(filters) });
   }
 
   create(data: CostoExtraRequest): Observable<CostoExtraResponse> {
@@ -31,5 +37,13 @@ export class CostoExtraService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API}/${id}`);
+  }
+
+  private buildParams(filters: CostoExtraFilters): HttpParams {
+    let params = new HttpParams();
+    if (filters.inicio) params = params.set('inicio', filters.inicio);
+    if (filters.fin) params = params.set('fin', filters.fin);
+    if (filters.facturable !== undefined) params = params.set('facturable', String(filters.facturable));
+    return params;
   }
 }

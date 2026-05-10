@@ -259,6 +259,9 @@ public class IncidenteService {
                                     BigDecimal valor, String anterior, String nuevo) {
         auditoriaFinancieraRepository.save(AuditoriaFinanciera.builder()
                 .incidente(inc).usuario(usr).tipoCambio(tipo).detalle(detalle)
+                .accion(tipo.startsWith("CREACION") ? "CREATE" : "UPDATE")
+                .entidadAfectada("Incidente")
+                .registroId(inc.getId())
                 .valorAfectado(valor).registroAnterior(anterior).registroNuevo(nuevo).build());
     }
 }
