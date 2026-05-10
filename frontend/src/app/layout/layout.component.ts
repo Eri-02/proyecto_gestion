@@ -321,6 +321,7 @@ export class LayoutComponent implements OnInit {
     { icon: 'flag', label: 'Prioridades', route: '/prioridades', roles: ['ADMIN', 'ANALISTA'] },
     { icon: 'label', label: 'Estados', route: '/estados', roles: ['ADMIN', 'ANALISTA'] },
     { icon: 'assessment', label: 'Reportes', route: '/reportes' },
+    { icon: 'analytics', label: 'Desempeño', route: '/reportes/analistas' },
   ];
 
   filteredNavItems: NavItem[] = [];

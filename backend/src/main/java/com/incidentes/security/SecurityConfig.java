@@ -150,6 +150,9 @@ public class SecurityConfig {
                         // ---- Dashboard: DIRECTOR, ADMIN, FINANZAS, SUPER_ADMIN ----
                         .requestMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_ADMIN", "ROLE_FINANZAS", "ROLE_SUPER_ADMIN")
 
+                        // ---- Reportes: DIRECTOR, ADMIN, FINANZAS, SUPER_ADMIN, ANALISTA ----
+                        .requestMatchers("/api/reportes/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_ADMIN", "ROLE_FINANZAS", "ROLE_SUPER_ADMIN", "ROLE_ANALISTA")
+
                         // ---- Todo lo demás requiere autenticación ----
                         .anyRequest().authenticated()
                 )
