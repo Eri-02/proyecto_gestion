@@ -14,23 +14,28 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'dashboard',
-        loadComponent: () => import('./modules/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        loadComponent: () => import('./modules/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS')]
       },
       {
         path: 'incidentes',
-        loadComponent: () => import('./modules/incidentes/incidente-list/incidente-list.component').then(m => m.IncidenteListComponent)
+        loadComponent: () => import('./modules/incidentes/incidente-list/incidente-list.component').then(m => m.IncidenteListComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'ANALISTA')]
       },
       {
         path: 'incidentes/nuevo',
-        loadComponent: () => import('./modules/incidentes/incidente-form/incidente-form.component').then(m => m.IncidenteFormComponent)
+        loadComponent: () => import('./modules/incidentes/incidente-form/incidente-form.component').then(m => m.IncidenteFormComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'ANALISTA')]
       },
       {
         path: 'incidentes/:id',
-        loadComponent: () => import('./modules/incidentes/incidente-detail/incidente-detail.component').then(m => m.IncidenteDetailComponent)
+        loadComponent: () => import('./modules/incidentes/incidente-detail/incidente-detail.component').then(m => m.IncidenteDetailComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'ANALISTA')]
       },
       {
         path: 'incidentes/:id/editar',
-        loadComponent: () => import('./modules/incidentes/incidente-form/incidente-form.component').then(m => m.IncidenteFormComponent)
+        loadComponent: () => import('./modules/incidentes/incidente-form/incidente-form.component').then(m => m.IncidenteFormComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'ANALISTA')]
       },
       {
         path: 'usuarios',
@@ -74,13 +79,16 @@ export const routes: Routes = [
       },
       {
         path: 'reportes',
-        loadComponent: () => import('./modules/reportes/reportes.component').then(m => m.ReportesComponent)
+        loadComponent: () => import('./modules/reportes/reportes.component').then(m => m.ReportesComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS', 'ANALISTA')]
       },
       {
         path: 'reportes/analistas',
-        loadComponent: () => import('./modules/reportes/analista-desempeno/analista-desempeno.component').then(m => m.AnalistaDesempenoComponent)
-      }
+        loadComponent: () => import('./modules/reportes/analista-desempeno/analista-desempeno.component').then(m => m.AnalistaDesempenoComponent),
+        canActivate: [roleGuard('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS', 'ANALISTA')]
+      },
+      { path: '**', redirectTo: 'dashboard' }
     ]
   },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' }
 ];
