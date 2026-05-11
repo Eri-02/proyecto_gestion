@@ -248,7 +248,7 @@ export class LoginComponent {
   ) {
     // If already logged in, redirect
     if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate([this.authService.getDefaultRoute()]);
     }
 
     this.loginForm = this.fb.group({
@@ -264,11 +264,11 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.notification.success('¡Bienvenido!');
-        this.router.navigate(['/dashboard']);
+        this.router.navigate([this.authService.getDefaultRoute()]);
       },
       error: (err) => {
         this.loading = false;
-        const msg = err.error?.message || 'Credenciales incorrectas';
+        const msg = err.error?.mensaje || err.error?.message || 'Credenciales incorrectas';
         this.notification.error(msg);
       }
     });

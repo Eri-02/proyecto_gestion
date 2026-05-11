@@ -59,6 +59,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:4200",
                 "http://localhost:5173",
                 "http://localhost:3000"
         ));
@@ -123,29 +124,29 @@ public class SecurityConfig {
                         // ---- Usuarios: ADMIN, SUPER_ADMIN ----
                         .requestMatchers("/api/usuarios/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
-                        // ---- Prioridades: ADMIN, ANALISTA ----
-                        .requestMatchers("/api/prioridades/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ANALISTA")
+                        // ---- Prioridades: ADMIN, ANALISTA, SUPER_ADMIN ----
+                        .requestMatchers("/api/prioridades/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ANALISTA", "ROLE_SUPER_ADMIN")
 
-                        // ---- Estados: ADMIN, ANALISTA ----
-                        .requestMatchers("/api/estados/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ANALISTA")
+                        // ---- Estados: ADMIN, ANALISTA, SUPER_ADMIN ----
+                        .requestMatchers("/api/estados/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ANALISTA", "ROLE_SUPER_ADMIN")
 
-                        // ---- Incidentes: ANALISTA, ADMIN, DIRECTOR, SUPER_ADMIN ----
-                        .requestMatchers("/api/incidentes/**").hasAnyAuthority("ROLE_ANALISTA", "ROLE_ADMIN", "ROLE_DIRECTOR", "ROLE_SUPER_ADMIN")
+                        // ---- Incidentes: ANALISTA, ADMIN, DIRECTOR, FINANZAS, SUPER_ADMIN ----
+                        .requestMatchers("/api/incidentes/**").hasAnyAuthority("ROLE_ANALISTA", "ROLE_ADMIN", "ROLE_DIRECTOR", "ROLE_FINANZAS", "ROLE_SUPER_ADMIN")
 
-                        // ---- Recursos: ADMIN, FINANZAS ----
-                        .requestMatchers("/api/recursos/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_FINANZAS")
+                        // ---- Recursos: ADMIN, FINANZAS, SUPER_ADMIN ----
+                        .requestMatchers("/api/recursos/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_FINANZAS", "ROLE_SUPER_ADMIN")
 
-                        // ---- Horas trabajadas: ANALISTA, ADMIN ----
-                        .requestMatchers("/api/horas/**").hasAnyAuthority("ROLE_ANALISTA", "ROLE_ADMIN")
+                        // ---- Horas trabajadas: ANALISTA, ADMIN, SUPER_ADMIN ----
+                        .requestMatchers("/api/horas/**").hasAnyAuthority("ROLE_ANALISTA", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
-                        // ---- Costos extras: FINANZAS, ADMIN ----
-                        .requestMatchers("/api/costos-extras/**").hasAnyAuthority("ROLE_FINANZAS", "ROLE_ADMIN")
+                        // ---- Costos extras: FINANZAS, ADMIN, SUPER_ADMIN ----
+                        .requestMatchers("/api/costos-extras/**").hasAnyAuthority("ROLE_FINANZAS", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // ---- Auditoría: ADMIN, SUPER_ADMIN ----
                         .requestMatchers("/api/auditoria/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
-                        // ---- Cambios de estado: ADMIN, DIRECTOR ----
-                        .requestMatchers("/api/cambios-estado/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DIRECTOR")
+                        // ---- Cambios de estado: ADMIN, DIRECTOR, SUPER_ADMIN ----
+                        .requestMatchers("/api/cambios-estado/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DIRECTOR", "ROLE_SUPER_ADMIN")
 
                         // ---- Dashboard: DIRECTOR, ADMIN, FINANZAS, SUPER_ADMIN ----
                         .requestMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_DIRECTOR", "ROLE_ADMIN", "ROLE_FINANZAS", "ROLE_SUPER_ADMIN")

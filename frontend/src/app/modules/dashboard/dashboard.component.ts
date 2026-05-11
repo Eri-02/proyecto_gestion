@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { IncidenteService } from '../../core/services/incidente.service';
 import { DashboardResponse, IncidenteCritico } from '../../core/models/dashboard.model';
@@ -433,6 +434,7 @@ export class DashboardComponent implements OnInit {
   };
 
   constructor(
+    private authService: AuthService,
     private dashboardService: DashboardService,
     private incidenteService: IncidenteService,
     private router: Router
@@ -457,6 +459,12 @@ export class DashboardComponent implements OnInit {
   }
 
   loadIncidentsForCharts(): void {
+    if (!this.authService.canAccessIncidentes()) {
+      this.buildChartsFromDashboard();
+      this.loading = false;
+      return;
+    }
+
     this.incidenteService.getAll().subscribe({
       next: (incidentes) => {
         this.incidentes = incidentes;
@@ -542,6 +550,24 @@ export class DashboardComponent implements OnInit {
     };
 
     this.stateChartData = this.priorityChartData;
+
+    this.costChartData = {
+      labels: ['Estimado Total', 'Real Total', 'Margen Total'],
+      datasets: [{
+        label: 'Resumen financiero',
+        data: [
+          this.data?.costoEstimadoTotal || 0,
+          this.data?.costoRealTotal || 0,
+          this.data?.margenTotal || 0
+        ],
+        backgroundColor: [
+          'rgba(79, 140, 255, 0.7)',
+          'rgba(255, 61, 87, 0.7)',
+          'rgba(0, 200, 83, 0.7)'
+        ],
+        borderRadius: 6
+      }]
+    };
   }
 
   goToIncident(id: number): void {

@@ -1,13 +1,11 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const router = inject(Router);
   const notification = inject(NotificationService);
 
   const token = authService.getToken();
@@ -22,14 +20,13 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        authService.logout();
-        router.navigate(['/login']);
-        notification.error('Sesión expirada. Inicie sesión nuevamente.');
+        notification.error(error.error?.mensaje || error.error?.message || 'Debe autenticarse para acceder a este recurso.');
       } else if (error.status === 403) {
-        notification.error('Acceso denegado. No tiene permisos para esta acción.');
+        notification.error(error.error?.mensaje || error.error?.message || 'Acceso denegado. No tiene permisos para esta acción.');
       } else if (error.status === 0) {
         notification.error('Error de conexión con el servidor.');
       }
+
       return throwError(() => error);
     })
   );

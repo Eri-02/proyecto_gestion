@@ -29,7 +29,7 @@ public class IncidenteService {
     private final HoraTrabajadaRepository horaTrabajadaRepository;
     private final CostoExtraRepository costoExtraRepository;
     private final CambioEstadoRepository cambioEstadoRepository;
-    private final AuditoriaFinancieraRepository auditoriaFinancieraRepository;
+    private final AuditoriaFinancieraService auditoriaFinancieraService;
 
     // =====================================================================
     // CRUD - LISTAR TODOS
@@ -84,8 +84,8 @@ public class IncidenteService {
         }
 
         Incidente guardado = incidenteRepository.save(inc);
-        registrarAuditoria(guardado, creadoPor, "CREACION",
-                "Incidente creado: " + guardado.getTitulo(), guardado.getCostoEstimado(), null, null);
+        auditoriaFinancieraService.registrar(guardado, creadoPor, "CREATE", "Incidente",
+                guardado.getId(), guardado.getCostoEstimado(), null, snapshot(guardado));
         return obtenerPorId(guardado.getId());
     }
 
@@ -95,6 +95,7 @@ public class IncidenteService {
     public IncidenteResponseDTO actualizar(Long id, IncidenteRequestDTO req) {
         Incidente inc = incidenteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Incidente", "id", id));
+        var anterior = snapshot(inc);
         Prioridad prioridad = prioridadRepository.findById(req.getPrioridadId())
                 .orElseThrow(() -> new ResourceNotFoundException("Prioridad", "id", req.getPrioridadId()));
         Estado estadoNuevo = estadoRepository.findById(req.getEstadoId())
@@ -114,15 +115,13 @@ public class IncidenteService {
         }
 
         // Auditoría de costo
-        if (req.getCostoEstimado().compareTo(inc.getCostoEstimado()) != 0) {
-            registrarAuditoria(inc, usuario, "CAMBIO_COSTO_ESTIMADO", "Costo estimado modificado",
-                    req.getCostoEstimado(), inc.getCostoEstimado().toString(), req.getCostoEstimado().toString());
-        }
+        BigDecimal ingresosActuales = inc.getIngresos() != null ? inc.getIngresos() : BigDecimal.ZERO;
+        BigDecimal ingresosNuevos = req.getIngresos() != null ? req.getIngresos() : ingresosActuales;
 
         inc.setTitulo(req.getTitulo()); inc.setDescripcion(req.getDescripcion());
         inc.setPrioridad(prioridad); inc.setEstado(estadoNuevo);
         inc.setCostoEstimado(req.getCostoEstimado());
-        inc.setIngresos(req.getIngresos() != null ? req.getIngresos() : inc.getIngresos());
+        inc.setIngresos(ingresosNuevos);
         inc.setCliente(req.getCliente()); inc.setSistemaAfectado(req.getSistemaAfectado());
         inc.setDescripcionTecnica(req.getDescripcionTecnica());
         inc.setLeccionesAprendidas(req.getLeccionesAprendidas());
@@ -133,7 +132,9 @@ public class IncidenteService {
             inc.setResueltoPor(resueltoPor);
         }
 
-        incidenteRepository.save(inc);
+        Incidente guardado = incidenteRepository.save(inc);
+        auditoriaFinancieraService.registrar(guardado, usuario, "UPDATE", "Incidente",
+                guardado.getId(), guardado.getCostoEstimado(), anterior, snapshot(guardado));
         return obtenerPorId(id);
     }
 
@@ -145,6 +146,8 @@ public class IncidenteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Incidente", "id", id));
         if (!"Nuevo".equals(inc.getEstado().getNombre()))
             throw new BusinessException("Solo se pueden eliminar incidentes en estado 'Nuevo'. Actual: '" + inc.getEstado().getNombre() + "'");
+        auditoriaFinancieraService.registrar(inc, inc.getCreadoPor(), "DELETE", "Incidente",
+                inc.getId(), inc.getCostoEstimado(), snapshot(inc), null);
         incidenteRepository.delete(inc);
     }
 
@@ -255,10 +258,24 @@ public class IncidenteService {
                 .categoria(c.getCategoria()).facturable(c.getFacturable()).fechaRegistro(c.getFechaRegistro()).build();
     }
 
-    private void registrarAuditoria(Incidente inc, Usuario usr, String tipo, String detalle,
-                                    BigDecimal valor, String anterior, String nuevo) {
-        auditoriaFinancieraRepository.save(AuditoriaFinanciera.builder()
-                .incidente(inc).usuario(usr).tipoCambio(tipo).detalle(detalle)
-                .valorAfectado(valor).registroAnterior(anterior).registroNuevo(nuevo).build());
+    private java.util.Map<String, Object> snapshot(Incidente inc) {
+        java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
+        data.put("id", inc.getId());
+        data.put("titulo", inc.getTitulo());
+        data.put("descripcion", inc.getDescripcion());
+        data.put("prioridadId", inc.getPrioridad().getId());
+        data.put("estadoId", inc.getEstado().getId());
+        data.put("costoEstimado", inc.getCostoEstimado());
+        data.put("ingresos", inc.getIngresos());
+        data.put("creadoPorUsuarioId", inc.getCreadoPor().getId());
+        data.put("resueltoPorUsuarioId", inc.getResueltoPor() != null ? inc.getResueltoPor().getId() : null);
+        data.put("cliente", inc.getCliente());
+        data.put("sistemaAfectado", inc.getSistemaAfectado());
+        data.put("descripcionTecnica", inc.getDescripcionTecnica());
+        data.put("leccionesAprendidas", inc.getLeccionesAprendidas());
+        data.put("fechaResolucion", inc.getFechaResolucion());
+        data.put("fechaCierre", inc.getFechaCierre());
+        data.put("activo", inc.getActivo());
+        return data;
     }
 }

@@ -28,17 +28,17 @@ interface NavItem {
     MatDividerModule, MatTooltipModule
   ],
   template: `
-    <mat-sidenav-container class="layout-container">
+    <mat-sidenav-container class="layout-container" [autosize]="true">
       <!-- SIDEBAR -->
       <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile"
                    class="sidebar" [class.collapsed]="isCollapsed && !isMobile">
         <!-- Logo -->
-        <div class="sidebar-header" (click)="isCollapsed = !isCollapsed">
+        <div class="sidebar-header">
           <div class="logo-container">
             <mat-icon class="logo-icon">shield</mat-icon>
             <span class="logo-text" *ngIf="!isCollapsed || isMobile">CyberShield</span>
           </div>
-          <button mat-icon-button class="collapse-btn" *ngIf="!isMobile">
+          <button mat-icon-button class="collapse-btn" *ngIf="!isMobile" (click)="toggleDesktopSidebar($event)">
             <mat-icon>{{ isCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
           </button>
         </div>
@@ -76,7 +76,7 @@ interface NavItem {
       <mat-sidenav-content class="main-content">
         <!-- Top Toolbar -->
         <mat-toolbar class="top-toolbar">
-          <button mat-icon-button (click)="isMobile ? sidenav.toggle() : isCollapsed = !isCollapsed">
+          <button mat-icon-button (click)="toggleSidebar()">
             <mat-icon>menu</mat-icon>
           </button>
 
@@ -289,6 +289,7 @@ interface NavItem {
     /* ======== CONTENT ======== */
     .main-content {
       background: var(--bg-primary);
+      transition: margin-left var(--transition-normal);
     }
 
     .content-area {
@@ -314,14 +315,16 @@ export class LayoutComponent implements OnInit {
   userInitial = '';
 
   navItems: NavItem[] = [
-    { icon: 'dashboard', label: 'Dashboard', route: '/dashboard' },
-    { icon: 'bug_report', label: 'Incidentes', route: '/incidentes' },
+    { icon: 'dashboard', label: 'Dashboard', route: '/dashboard', roles: ['ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS'] },
+    { icon: 'bug_report', label: 'Incidentes', route: '/incidentes', roles: ['ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'ANALISTA'] },
     { icon: 'people', label: 'Usuarios', route: '/usuarios', roles: ['ADMIN', 'SUPER_ADMIN'] },
-    { icon: 'engineering', label: 'Recursos', route: '/recursos', roles: ['ADMIN', 'FINANZAS'] },
-    { icon: 'flag', label: 'Prioridades', route: '/prioridades', roles: ['ADMIN', 'ANALISTA'] },
-    { icon: 'label', label: 'Estados', route: '/estados', roles: ['ADMIN', 'ANALISTA'] },
-    { icon: 'assessment', label: 'Reportes', route: '/reportes' },
-    { icon: 'analytics', label: 'Desempeño', route: '/reportes/analistas' },
+    { icon: 'engineering', label: 'Recursos', route: '/recursos', roles: ['ADMIN', 'FINANZAS', 'SUPER_ADMIN'] },
+    { icon: 'account_balance_wallet', label: 'Presupuestos', route: '/presupuestos', roles: ['ADMIN', 'FINANZAS'] },
+    { icon: 'manage_search', label: 'Auditoría', route: '/auditoria-financiera', roles: ['ADMIN', 'SUPER_ADMIN'] },
+    { icon: 'flag', label: 'Prioridades', route: '/prioridades', roles: ['ADMIN', 'ANALISTA', 'SUPER_ADMIN'] },
+    { icon: 'label', label: 'Estados', route: '/estados', roles: ['ADMIN', 'ANALISTA', 'SUPER_ADMIN'] },
+    { icon: 'assessment', label: 'Reportes', route: '/reportes', roles: ['ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS', 'ANALISTA'] },
+    { icon: 'analytics', label: 'Desempeño', route: '/reportes/analistas', roles: ['ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS', 'ANALISTA'] },
   ];
 
   filteredNavItems: NavItem[] = [];
@@ -345,7 +348,24 @@ export class LayoutComponent implements OnInit {
 
     this.breakpointObserver.observe([Breakpoints.Handset]).subscribe(result => {
       this.isMobile = result.matches;
+      if (this.isMobile) {
+        this.isCollapsed = false;
+      }
     });
+  }
+
+  toggleSidebar(): void {
+    if (this.isMobile) {
+      this.sidenav.toggle();
+      return;
+    }
+
+    this.isCollapsed = !this.isCollapsed;
+  }
+
+  toggleDesktopSidebar(event: Event): void {
+    event.stopPropagation();
+    this.isCollapsed = !this.isCollapsed;
   }
 
   logout(): void {

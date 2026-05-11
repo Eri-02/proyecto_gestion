@@ -15,8 +15,27 @@ public interface HoraTrabajadaRepository extends JpaRepository<HoraTrabajada, Lo
 
     List<HoraTrabajada> findByIncidenteId(Long incidenteId);
 
+    List<HoraTrabajada> findByFechaTrabajoBetween(LocalDate inicio, LocalDate fin);
+
+    @Query("SELECT h FROM HoraTrabajada h WHERE " +
+            "(:incidenteId IS NULL OR h.incidente.id = :incidenteId) " +
+            "AND (:inicio IS NULL OR h.fechaTrabajo >= :inicio) " +
+            "AND (:fin IS NULL OR h.fechaTrabajo <= :fin) " +
+            "AND (:facturable IS NULL OR h.facturable = :facturable)")
+    List<HoraTrabajada> findConFiltros(
+            @Param("incidenteId") Long incidenteId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fin") LocalDate fin,
+            @Param("facturable") Boolean facturable);
+
     @Query("SELECT COALESCE(SUM(h.horas), 0) FROM HoraTrabajada h WHERE h.incidente.id = :incidenteId")
     BigDecimal sumHorasByIncidenteId(@Param("incidenteId") Long incidenteId);
+
+    @Query("SELECT COALESCE(SUM(h.horas * h.recurso.costoPorHora), 0) FROM HoraTrabajada h WHERE h.incidente.id = :incidenteId AND h.facturable = :facturable")
+    BigDecimal sumCostoByIncidenteIdAndFacturable(@Param("incidenteId") Long incidenteId, @Param("facturable") Boolean facturable);
+
+    @Query("SELECT COALESCE(SUM(h.horas * h.recurso.costoPorHora), 0) FROM HoraTrabajada h WHERE h.fechaTrabajo BETWEEN :inicio AND :fin AND h.facturable = :facturable")
+    BigDecimal sumCostoByPeriodoAndFacturable(@Param("inicio") LocalDate inicio, @Param("fin") LocalDate fin, @Param("facturable") Boolean facturable);
 
     // ---- Queries para utilización de recursos ----
 

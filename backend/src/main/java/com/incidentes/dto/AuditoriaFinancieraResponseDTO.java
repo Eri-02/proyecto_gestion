@@ -12,6 +12,9 @@ public class AuditoriaFinancieraResponseDTO {
     private Long usuarioId;
     private String usuarioNombre;
     private String tipoCambio;
+    private String accion;
+    private String entidadAfectada;
+    private Long registroId;
     private String detalle;
     private BigDecimal valorAfectado;
     private String registroAnterior;

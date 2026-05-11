@@ -59,4 +59,32 @@ export class AuthService {
     const userRole = this.getUserRole();
     return roles.some(r => userRole.toUpperCase().includes(r.toUpperCase()));
   }
+
+  canAccessDashboard(): boolean {
+    return this.hasRole('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS');
+  }
+
+  canAccessIncidentes(): boolean {
+    return this.hasRole('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'ANALISTA');
+  }
+
+  canAccessReportes(): boolean {
+    return this.hasRole('ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS', 'ANALISTA');
+  }
+
+  getDefaultRoute(): string {
+    if (this.canAccessDashboard()) {
+      return '/dashboard';
+    }
+
+    if (this.canAccessIncidentes()) {
+      return '/incidentes';
+    }
+
+    if (this.canAccessReportes()) {
+      return '/reportes';
+    }
+
+    return '/login';
+  }
 }

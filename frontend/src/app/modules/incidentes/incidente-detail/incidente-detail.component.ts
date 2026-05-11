@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +12,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { IncidenteService } from '../../../core/services/incidente.service';
 import { HoraTrabajadaService } from '../../../core/services/hora-trabajada.service';
@@ -32,6 +37,7 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
     CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatTableModule,
     MatExpansionModule, MatProgressSpinnerModule, MatProgressBarModule,
     MatChipsModule, MatTooltipModule, MatDividerModule,
+    ReactiveFormsModule, MatFormFieldModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule,
     CurrencyPipe, DatePipe, DecimalPipe
   ],
   template: `
@@ -147,7 +153,30 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
                 <mat-icon>add</mat-icon> Agregar Hora
               </button>
 
-              <table mat-table [dataSource]="horas" class="full-width" *ngIf="horas.length">
+              <div class="inline-filters" [formGroup]="horasFilterForm">
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha</mat-label>
+                  <mat-date-range-input [rangePicker]="horasPicker">
+                    <input matStartDate formControlName="inicio" placeholder="Inicio">
+                    <input matEndDate formControlName="fin" placeholder="Fin">
+                  </mat-date-range-input>
+                  <mat-datepicker-toggle matIconSuffix [for]="horasPicker"></mat-datepicker-toggle>
+                  <mat-date-range-picker #horasPicker></mat-date-range-picker>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Facturación</mat-label>
+                  <mat-select formControlName="facturable">
+                    <mat-option value="">Todas</mat-option>
+                    <mat-option value="true">Facturable</mat-option>
+                    <mat-option value="false">No facturable</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <button mat-button type="button" (click)="clearHorasFilters()">Limpiar</button>
+              </div>
+
+              <table mat-table [dataSource]="filteredHoras" class="full-width" *ngIf="filteredHoras.length">
                 <ng-container matColumnDef="recurso">
                   <th mat-header-cell *matHeaderCellDef>Recurso</th>
                   <td mat-cell *matCellDef="let h">{{ h.recursoNombre }}</td>
@@ -160,19 +189,29 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
                   <th mat-header-cell *matHeaderCellDef>Costo</th>
                   <td mat-cell *matCellDef="let h">{{ h.costoTotal | currency:'USD' }}</td>
                 </ng-container>
+                <ng-container matColumnDef="facturable">
+                  <th mat-header-cell *matHeaderCellDef>Facturable</th>
+                  <td mat-cell *matCellDef="let h">
+                    <span class="chip" [ngClass]="h.facturable ? 'chip-resuelto' : 'chip-cerrado'">
+                      {{ h.facturable ? 'Si' : 'No' }}
+                    </span>
+                  </td>
+                </ng-container>
                 <ng-container matColumnDef="fecha">
                   <th mat-header-cell *matHeaderCellDef>Fecha</th>
                   <td mat-cell *matCellDef="let h">{{ h.fechaTrabajo | date:'dd/MM/yyyy' }}</td>
                 </ng-container>
                 <ng-container matColumnDef="descripcion">
                   <th mat-header-cell *matHeaderCellDef>Descripción</th>
-                  <td mat-cell *matCellDef="let h">{{ h.descripcion || '—' }}</td>
+                  <td mat-cell *matCellDef="let h">{{ h.descripcion || '-' }}</td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="horasColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: horasColumns;"></tr>
               </table>
 
-              <p *ngIf="!horas.length" class="empty-msg">No hay horas registradas</p>
+              <p *ngIf="!filteredHoras.length" class="empty-msg">
+                {{ horas.length ? 'No hay horas con los filtros seleccionados' : 'No hay horas registradas' }}
+              </p>
             </mat-expansion-panel>
 
             <!-- Extra Costs -->
@@ -187,7 +226,30 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
                 <mat-icon>add</mat-icon> Agregar Costo Extra
               </button>
 
-              <table mat-table [dataSource]="costosExtras" class="full-width" *ngIf="costosExtras.length">
+              <div class="inline-filters" [formGroup]="costosFilterForm">
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha</mat-label>
+                  <mat-date-range-input [rangePicker]="costosPicker">
+                    <input matStartDate formControlName="inicio" placeholder="Inicio">
+                    <input matEndDate formControlName="fin" placeholder="Fin">
+                  </mat-date-range-input>
+                  <mat-datepicker-toggle matIconSuffix [for]="costosPicker"></mat-datepicker-toggle>
+                  <mat-date-range-picker #costosPicker></mat-date-range-picker>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Facturación</mat-label>
+                  <mat-select formControlName="facturable">
+                    <mat-option value="">Todas</mat-option>
+                    <mat-option value="true">Facturable</mat-option>
+                    <mat-option value="false">No facturable</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <button mat-button type="button" (click)="clearCostosFilters()">Limpiar</button>
+              </div>
+
+              <table mat-table [dataSource]="filteredCostosExtras" class="full-width" *ngIf="filteredCostosExtras.length">
                 <ng-container matColumnDef="concepto">
                   <th mat-header-cell *matHeaderCellDef>Concepto</th>
                   <td mat-cell *matCellDef="let c">{{ c.concepto }}</td>
@@ -200,19 +262,29 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
                   <th mat-header-cell *matHeaderCellDef>Monto</th>
                   <td mat-cell *matCellDef="let c">{{ c.monto | currency:'USD' }}</td>
                 </ng-container>
+                <ng-container matColumnDef="facturable">
+                  <th mat-header-cell *matHeaderCellDef>Facturable</th>
+                  <td mat-cell *matCellDef="let c">
+                    <span class="chip" [ngClass]="c.facturable ? 'chip-resuelto' : 'chip-cerrado'">
+                      {{ c.facturable ? 'Si' : 'No' }}
+                    </span>
+                  </td>
+                </ng-container>
                 <ng-container matColumnDef="fecha">
                   <th mat-header-cell *matHeaderCellDef>Fecha</th>
                   <td mat-cell *matCellDef="let c">{{ c.fecha | date:'dd/MM/yyyy' }}</td>
                 </ng-container>
                 <ng-container matColumnDef="proveedor">
                   <th mat-header-cell *matHeaderCellDef>Proveedor</th>
-                  <td mat-cell *matCellDef="let c">{{ c.proveedor || '—' }}</td>
+                  <td mat-cell *matCellDef="let c">{{ c.proveedor || '-' }}</td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="costosColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: costosColumns;"></tr>
               </table>
 
-              <p *ngIf="!costosExtras.length" class="empty-msg">No hay costos extras registrados</p>
+              <p *ngIf="!filteredCostosExtras.length" class="empty-msg">
+                {{ costosExtras.length ? 'No hay costos extras con los filtros seleccionados' : 'No hay costos extras registrados' }}
+              </p>
             </mat-expansion-panel>
 
             <!-- Status History -->
@@ -241,7 +313,7 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
           </mat-accordion>
         </div>
 
-        <!-- Right Column — Financial Summary -->
+        <!-- Financial Summary -->
         <div class="right-col">
           <div class="finance-summary card">
             <h3><mat-icon>account_balance</mat-icon> Resumen Financiero</h3>
@@ -378,6 +450,23 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
       mat-icon { margin-right: 4px; }
     }
 
+    .inline-filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      margin: 0 0 12px;
+
+      mat-form-field {
+        flex: 1;
+        min-width: 190px;
+      }
+
+      button {
+        min-height: 56px;
+      }
+    }
+
     .full-width { width: 100%; }
     .empty-msg {
       color: var(--text-muted);
@@ -488,18 +577,35 @@ import { CostoExtraDialogComponent } from '../costo-extra-dialog/costo-extra-dia
       .finance-summary {
         position: static;
       }
+      .inline-filters {
+        flex-direction: column;
+      }
     }
   `]
 })
 export class IncidenteDetailComponent implements OnInit {
   incidente: IncidenteResponse | null = null;
   horas: HoraTrabajadaResponse[] = [];
+  filteredHoras: HoraTrabajadaResponse[] = [];
   costosExtras: CostoExtraResponse[] = [];
+  filteredCostosExtras: CostoExtraResponse[] = [];
   cambios: CambioEstadoResponse[] = [];
   loading = true;
 
-  horasColumns = ['recurso', 'horas', 'costo', 'fecha', 'descripcion'];
-  costosColumns = ['concepto', 'categoria', 'monto', 'fecha', 'proveedor'];
+  horasColumns = ['recurso', 'horas', 'costo', 'facturable', 'fecha', 'descripcion'];
+  costosColumns = ['concepto', 'categoria', 'monto', 'facturable', 'fecha', 'proveedor'];
+
+  horasFilterForm = new FormGroup({
+    inicio: new FormControl<Date | null>(null),
+    fin: new FormControl<Date | null>(null),
+    facturable: new FormControl('')
+  });
+
+  costosFilterForm = new FormGroup({
+    inicio: new FormControl<Date | null>(null),
+    fin: new FormControl<Date | null>(null),
+    facturable: new FormControl('')
+  });
 
   private incidenteId!: number;
 
@@ -517,6 +623,8 @@ export class IncidenteDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.incidenteId = +this.route.snapshot.paramMap.get('id')!;
+    this.horasFilterForm.valueChanges.subscribe(() => this.loadHoras());
+    this.costosFilterForm.valueChanges.subscribe(() => this.loadCostosExtras());
     this.loadAll();
   }
 
@@ -525,8 +633,8 @@ export class IncidenteDetailComponent implements OnInit {
     this.incidenteService.getById(this.incidenteId).subscribe({
       next: (inc) => {
         this.incidente = inc;
-        this.horas = inc.horasTrabajadas || [];
-        this.costosExtras = inc.costosExtras || [];
+        this.loadHoras();
+        this.loadCostosExtras();
         this.loadCambios();
         this.loading = false;
       },
@@ -545,15 +653,74 @@ export class IncidenteDetailComponent implements OnInit {
   }
 
   loadHoras(): void {
-    this.horaService.getByIncidente(this.incidenteId).subscribe({
-      next: (h) => this.horas = h
+    this.horaService.getByIncidente(this.incidenteId, this.buildHorasFilters()).subscribe({
+      next: (h) => {
+        this.horas = h;
+        this.filteredHoras = h;
+      }
     });
   }
 
   loadCostosExtras(): void {
-    this.costoExtraService.getByIncidente(this.incidenteId).subscribe({
-      next: (c) => this.costosExtras = c
+    this.costoExtraService.getByIncidente(this.incidenteId, this.buildCostosFilters()).subscribe({
+      next: (c) => {
+        this.costosExtras = c;
+        this.filteredCostosExtras = c;
+      }
     });
+  }
+
+  applyHorasFilters(): void {
+    const { inicio, fin, facturable } = this.horasFilterForm.value;
+    this.filteredHoras = this.horas.filter(h => {
+      const fecha = h.fechaTrabajo ? new Date(h.fechaTrabajo) : null;
+      const matchesFecha = (!inicio || (fecha && fecha >= inicio)) && (!fin || (fecha && fecha <= fin));
+      const matchesFacturable = facturable === '' || String(h.facturable) === facturable;
+      return matchesFecha && matchesFacturable;
+    });
+  }
+
+  applyCostosFilters(): void {
+    const { inicio, fin, facturable } = this.costosFilterForm.value;
+    this.filteredCostosExtras = this.costosExtras.filter(c => {
+      const fecha = c.fecha ? new Date(c.fecha) : null;
+      const matchesFecha = (!inicio || (fecha && fecha >= inicio)) && (!fin || (fecha && fecha <= fin));
+      const matchesFacturable = facturable === '' || String(c.facturable) === facturable;
+      return matchesFecha && matchesFacturable;
+    });
+  }
+
+  clearHorasFilters(): void {
+    this.horasFilterForm.reset({ inicio: null, fin: null, facturable: '' });
+  }
+
+  clearCostosFilters(): void {
+    this.costosFilterForm.reset({ inicio: null, fin: null, facturable: '' });
+  }
+
+  private buildHorasFilters(): { inicio?: string; fin?: string; facturable?: boolean } {
+    const { inicio, fin, facturable } = this.horasFilterForm.value;
+    return {
+      inicio: this.toDateString(inicio),
+      fin: this.toDateString(fin),
+      facturable: facturable === '' || facturable == null ? undefined : facturable === 'true'
+    };
+  }
+
+  private buildCostosFilters(): { inicio?: string; fin?: string; facturable?: boolean } {
+    const { inicio, fin, facturable } = this.costosFilterForm.value;
+    return {
+      inicio: this.toDateString(inicio),
+      fin: this.toDateString(fin),
+      facturable: facturable === '' || facturable == null ? undefined : facturable === 'true'
+    };
+  }
+
+  private toDateString(date: Date | null | undefined): string | undefined {
+    if (!date) return undefined;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
   }
 
   openHoraDialog(): void {

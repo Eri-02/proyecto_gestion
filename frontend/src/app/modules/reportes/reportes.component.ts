@@ -25,6 +25,7 @@ import { ReportesService } from '../../core/services/reportes.service';
 import { IncidenteService } from '../../core/services/incidente.service';
 import { EstadoService } from '../../core/services/estado.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { IncidenteResponse } from '../../core/models/incidente.model';
 import { DashboardResponse } from '../../core/models/dashboard.model';
@@ -355,6 +356,7 @@ export class ReportesComponent implements OnInit {
     private reportesService: ReportesService,
     private incidenteService: IncidenteService,
     private estadoService: EstadoService,
+    private authService: AuthService,
     private dashboardService: DashboardService,
     private notification: NotificationService
   ) {}
@@ -365,14 +367,24 @@ export class ReportesComponent implements OnInit {
 
   cargarDatosBase(): void {
     this.loading = true;
-    this.estadoService.getAll().subscribe(estados => this.estados = estados);
-    
+
     this.incidenteService.getAll().subscribe({
       next: (data) => {
         this.incidentes = data;
         this.filteredIncidentes = [...data];
+        this.estados = [...new Map(
+          data
+            .filter(i => i.estadoNombre)
+            .map(i => [i.estadoNombre, { id: i.estadoId, nombre: i.estadoNombre, descripcion: '', color: i.estadoColor }])
+        ).values()];
         this.actualizarMetricas();
         this.cargarReportesAvanzados();
+        if (this.authService.hasRole('ADMIN', 'ANALISTA', 'SUPER_ADMIN')) {
+          this.estadoService.getAll().subscribe({
+            next: (estados) => this.estados = estados,
+            error: () => {}
+          });
+        }
       },
       error: () => {
         this.notification.error('Error al cargar incidentes');
@@ -426,10 +438,21 @@ export class ReportesComponent implements OnInit {
     this.reportesService.obtenerTiemposRespuesta().subscribe(data => this.tiempoRespuesta = data);
 
     // Resumen General
-    this.dashboardService.getResumen().subscribe(data => {
-      this.dashboard = data;
+    if (this.authService.canAccessDashboard()) {
+      this.dashboardService.getResumen().subscribe({
+        next: (data) => {
+          this.dashboard = data;
+          this.loading = false;
+        },
+        error: () => {
+          this.dashboard = null;
+          this.loading = false;
+        }
+      });
+    } else {
+      this.dashboard = null;
       this.loading = false;
-    });
+    }
   }
 
   aplicarFiltros(): void {

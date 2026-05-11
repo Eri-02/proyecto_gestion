@@ -29,6 +29,15 @@ public class AuditoriaFinanciera {
     @Column(name = "tipo_cambio", nullable = false, length = 50)
     private String tipoCambio;
 
+    @Column(name = "accion", nullable = false, length = 20)
+    private String accion;
+
+    @Column(name = "entidad_afectada", nullable = false, length = 80)
+    private String entidadAfectada;
+
+    @Column(name = "registro_id", nullable = false)
+    private Long registroId;
+
     @Column(name = "detalle", columnDefinition = "TEXT")
     private String detalle;
 
