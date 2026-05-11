@@ -142,8 +142,12 @@ public class SecurityConfig {
                         // ---- Costos extras: FINANZAS, ADMIN, SUPER_ADMIN ----
                         .requestMatchers("/api/costos-extras/**").hasAnyAuthority("ROLE_FINANZAS", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
-                        // ---- Auditoría: ADMIN, SUPER_ADMIN ----
-                        .requestMatchers("/api/auditoria/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+                        // ---- Auditoría: GET/POST → ADMIN y SUPER_ADMIN ----
+                        //      PUT/DELETE → bloqueados (los registros de auditoría son inmutables)
+                        .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/auditoria/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/auditoria/**").denyAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/auditoria/**").denyAll()
 
                         // ---- Cambios de estado: ADMIN, DIRECTOR, SUPER_ADMIN ----
                         .requestMatchers("/api/cambios-estado/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DIRECTOR", "ROLE_SUPER_ADMIN")

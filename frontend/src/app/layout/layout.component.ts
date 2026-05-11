@@ -318,6 +318,7 @@ export class LayoutComponent implements OnInit {
     { icon: 'dashboard', label: 'Dashboard', route: '/dashboard', roles: ['ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'FINANZAS'] },
     { icon: 'bug_report', label: 'Incidentes', route: '/incidentes', roles: ['ADMIN', 'SUPER_ADMIN', 'DIRECTOR', 'ANALISTA'] },
     { icon: 'people', label: 'Usuarios', route: '/usuarios', roles: ['ADMIN', 'SUPER_ADMIN'] },
+    { icon: 'manage_accounts', label: 'Roles', route: '/roles', roles: ['ADMIN', 'SUPER_ADMIN'] },
     { icon: 'engineering', label: 'Recursos', route: '/recursos', roles: ['ADMIN', 'FINANZAS', 'SUPER_ADMIN'] },
     { icon: 'account_balance_wallet', label: 'Presupuestos', route: '/presupuestos', roles: ['ADMIN', 'FINANZAS'] },
     { icon: 'manage_search', label: 'Auditoría', route: '/auditoria-financiera', roles: ['ADMIN', 'SUPER_ADMIN'] },
