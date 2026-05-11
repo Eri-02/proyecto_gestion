@@ -57,8 +57,13 @@ public class Incidente {
     @JoinColumn(name = "resuelto_por_usuario_id")
     private Usuario resueltoPor;
 
-    @Column(name = "cliente", length = 150)
-    private String cliente;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "cliente_id", nullable = false)
+    private Cliente cliente;
 
     @Column(name = "sistema_afectado", length = 200)
     private String sistemaAfectado;
